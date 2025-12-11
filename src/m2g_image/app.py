@@ -41,7 +41,7 @@ def main(
     n_cols: Optional[int] = typer.Option(None, help="Number of columns (Default: 5)"),
     cell_width: Optional[int] = typer.Option(None, help="Cell width (Default: 150)"),
     cell_height: Optional[int] = typer.Option(None, help="Cell height (Default: 150)"),
-    fontsize: Optional[int] = typer.Option(None, help="Font size (Default: 12)"),
+    fontsize: Optional[int] = typer.Option(None, "-f", "--fontsize", help="Font size (Default: 12)"),
     
     # New Options
     sort_by: Optional[str] = typer.Option(None, help="Column to sort by"),
@@ -54,10 +54,10 @@ def main(
     text_align: Optional[str] = typer.Option(None, help="Text alignment (Default: center)"),
     
     # Pagination
-    n_items_per_page: Optional[int] = typer.Option(None, help="Number of molecules per page (image). If set, splits output into multiple files."),
+    n_items_per_page: Optional[int] = typer.Option(None, "-p", "--per-page", help="Number of molecules per page (image). If set, splits output into multiple files."),
     
     # Transparency
-    transparent: bool = typer.Option(False, help="Make background transparent (PNG only)."),
+    transparent: bool = typer.Option(False, "-t", "--transparent", help="Make background transparent (PNG only)."),
     
     # Output Control
     output_dir: Optional[Path] = typer.Option(None, help="Directory to save output images. If set, overrides the directory of output-image."),
