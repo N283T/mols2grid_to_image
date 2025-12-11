@@ -1,7 +1,8 @@
-
 import pandas as pd
 import mols2grid
 import os
+import io
+import contextlib
 from pathlib import Path
 from typing import Optional, Tuple, List
 
@@ -65,17 +66,18 @@ def generate_grid_html(
     if "border" not in display_kwargs:
         display_kwargs["border"] = "none"
 
-    grid = mols2grid.display(
-        df,
-        size=cell_size,
-        pad=pad,
-        subset=subset,
-        n_cols=n_cols,
-        fontsize=fontsize,
-        smiles_col=smiles_col,
-        custom_css=custom_css,
-        **display_kwargs
-    )
+    with contextlib.redirect_stdout(io.StringIO()):
+        grid = mols2grid.display(
+            df,
+            size=cell_size,
+            pad=pad,
+            subset=subset,
+            n_cols=n_cols,
+            fontsize=fontsize,
+            smiles_col=smiles_col,
+            custom_css=custom_css,
+            **display_kwargs
+        )
     
     return grid_to_image(
         grid, 

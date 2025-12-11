@@ -20,15 +20,15 @@ This tool generates a molecular grid visualization and captures it as a high-res
 ## Installation
 
 This project is managed with `uv`.
-
-1.  **Sync dependencies**:
+    
+1.  **Install via `uv`**:
     ```bash
-    uv sync
+    uv add https://github.com/N283T/mols2grid_to_image.git
     ```
-
-2.  **Install Playwright browsers**:
+    
+2.  **Install via `pip`**:
     ```bash
-    uv run playwright install chromium
+    pip install https://github.com/N283T/mols2grid_to_image.git
     ```
 
 ## Usage

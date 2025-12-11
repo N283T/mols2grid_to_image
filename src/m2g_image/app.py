@@ -169,12 +169,11 @@ def main(
     padding_width = len(str(num_chunks))  # Calculate padding width based on total chunks
     if num_chunks == 0: num_chunks = 1 # Handle empty df case gracefully-ish
     
-    for i in range(num_chunks):
+    from tqdm import tqdm
+    for i in tqdm(range(num_chunks), desc="Processing Batches"):
         start_idx = i * chunk_size
         end_idx = min((i + 1) * chunk_size, total_rows)
         chunk_df = df.iloc[start_idx:end_idx]
-        
-        typer.echo(f"Processing batch {i+1}/{num_chunks} ({len(chunk_df)} molecules)...")
         
         # Determine output filename
         if num_chunks > 1:
@@ -197,7 +196,7 @@ def main(
             **grid_kwargs
         )
     
-        typer.echo(f"Done! Image saved to {output_path}")
+        # typer.echo(f"Done! Image saved to {output_path}")
 
 if __name__ == "__main__":
     app()
