@@ -5,10 +5,10 @@ import pandas as pd
 from m2g_image import grid_to_image
 
 def main():
-    # 1. 任意のデータフレームを用意
+    # 1. Prepare a DataFrame
     df = pd.read_csv("example/test.csv")
 
-    # 2. mols2gridでグリッドオブジェクトを作成 (表示設定はここで行う)
+    # 2. Create a grid object (display settings are specified here)
     print("Creating grid object...")
     grid = mols2grid.display(
         df,
@@ -21,7 +21,7 @@ def main():
         prerender=True
     )
 
-    # 3. グリッドオブジェクトを直接画像化関数に渡す
+    # 3. Convert grid object to image
     print("Converting grid object to image...")
     output_path = grid_to_image(grid, "example/example_usage_output.png")
     
