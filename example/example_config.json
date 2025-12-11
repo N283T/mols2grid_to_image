@@ -1,0 +1,11 @@
+{
+    "output_image": "config_output.png",
+    "n_cols": 3,
+    "cell_width": 200,
+    "cell_height": 200,
+    "fontsize": 14,
+    "subset": [
+        "ccd",
+        "smiles"
+    ]
+}

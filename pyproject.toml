@@ -1,0 +1,32 @@
+[project]
+name = "mols2grid-to-image"
+version = "0.1.0"
+description = "Convert molecules to grid images using mols2grid and Playwright"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "mols2grid>=2.1.0",
+    "playwright>=1.57.0",
+    "pandas>=2.0.0",
+    "typer>=0.9.0",
+]
+
+[project.scripts]
+m2g-image = "m2g_image.app:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/m2g_image"]
+
+[tool.pytest.ini_options]
+pythonpath = "."
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-mock>=3.15.1",
+]
