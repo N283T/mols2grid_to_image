@@ -36,12 +36,12 @@ def main(
     output_html: Optional[Path] = typer.Option(None, "-oh", "--output-html", help="Path to save intermediate HTML file (Default: None/False)"),
     config: Optional[Path] = typer.Option(None, "-c", "--config", help="Path to JSON configuration file"),
     # Grid Settings
-    smiles_col: Optional[str] = typer.Option(None, help="Column name for SMILES (Default: smiles)"),
+    smiles_col: Optional[str] = typer.Option(None, "-sc", "--smiles-col", help="Column name for SMILES (Default: smiles)"),
     subset: Optional[List[str]] = typer.Option(None, help="Columns to display in grid"),
-    n_cols: Optional[int] = typer.Option(None, help="Number of columns (Default: 5)"),
-    cell_width: Optional[int] = typer.Option(None, help="Cell width (Default: 150)"),
-    cell_height: Optional[int] = typer.Option(None, help="Cell height (Default: 150)"),
-    fontsize: Optional[int] = typer.Option(None, "-f", "--fontsize", help="Font size (Default: 12)"),
+    n_cols: Optional[int] = typer.Option(None, "-nc", "--n-cols", help="Number of columns (Default: 5)"),
+    cell_width: Optional[int] = typer.Option(None, "-w", "--cell-width", help="Cell width (Default: 150)"),
+    cell_height: Optional[int] = typer.Option(None, "-h", "--cell-height", help="Cell height (Default: 150)"),
+    fontsize: Optional[int] = typer.Option(None, "-fs", "--fontsize", help="Font size (Default: 12)"),
     
     # New Options
     sort_by: Optional[str] = typer.Option(None, help="Column to sort by"),
@@ -50,8 +50,8 @@ def main(
     coord_gen: Optional[bool] = typer.Option(None, help="Use CoordGen (Default: True)"),
     border: Optional[str] = typer.Option(None, help="CSS border styling (e.g., '1px solid black')"),
     gap: Optional[int] = typer.Option(None, help="Gap size in pixels (Default: 0)"),
-    fontfamily: Optional[str] = typer.Option(None, help="Font family (Default: sans-serif)"),
-    text_align: Optional[str] = typer.Option(None, help="Text alignment (Default: center)"),
+    fontfamily: Optional[str] = typer.Option(None, "-ff", "--font-family",help="Font family (Default: sans-serif)"),
+    text_align: Optional[str] = typer.Option(None, "-ta", "--text-align", help="Text alignment (Default: center)"),
     
     # Pagination
     n_items_per_page: Optional[int] = typer.Option(None, "-p", "--per-page", help="Number of molecules per page (image). If set, splits output into multiple files."),
@@ -60,7 +60,7 @@ def main(
     transparent: bool = typer.Option(False, "-t", "--transparent", help="Make background transparent (PNG only)."),
     
     # Output Control
-    output_dir: Optional[Path] = typer.Option(None, help="Directory to save output images. If set, overrides the directory of output-image."),
+    output_dir: Optional[Path] = typer.Option(None, "-od", "--output-dir", help="Directory to save output images. If set, overrides the directory of output-image."),
 ):
     """
     Generate a grid image. Parameters can be supplied via CLI args or a JSON config file.
