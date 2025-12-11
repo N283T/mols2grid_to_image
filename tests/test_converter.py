@@ -26,7 +26,10 @@ def test_generate_grid_html_creates_files(sample_df, output_dir):
             output_html_path=str(html_out),
             output_image_path=str(image_out),
             smiles_col="smiles",
-            n_cols=3
+            n_cols=3,
+            # Test extra kwargs
+            sort_by="smiles",
+            gap=20
         )
         
         assert result_path == str(image_out)
@@ -35,6 +38,42 @@ def test_generate_grid_html_creates_files(sample_df, output_dir):
         args, kwargs = mock_g2i.call_args
         # kwargs should contain intermediate_html_path
         assert kwargs["intermediate_html_path"] == str(html_out)
+
+def test_generate_grid_html_passes_kwargs(sample_df, output_dir):
+    """Test that extra kwargs are passed to mols2grid.display."""
+    
+    with patch("m2g_image.converter.mols2grid.display") as mock_display, \
+         patch("m2g_image.converter.grid_to_image") as mock_g2i:
+             
+        mock_g2i.return_value = "dummy.png"
+        
+        generate_grid_html(
+            sample_df,
+            output_image_path="dummy.png",
+            # Extra params
+            sort_by="smiles",
+            gap=15,
+            removeHs=True,
+            border="1px solid red",
+            omit_background=True, # New parameter
+            custom_css="body { background-color: transparent !important; }", # New parameter
+            MolDrawOptions={"clearBackground": False} # New parameter
+        )
+        
+        mock_display.assert_called_once()
+        args, kwargs = mock_display.call_args
+        
+        assert kwargs["sort_by"] == "smiles"
+        assert kwargs["gap"] == 15
+        assert kwargs["removeHs"] is True
+        assert kwargs["border"] == "1px solid red"
+        # Check defaults/overrides
+        assert kwargs["template"] == "static"
+        assert kwargs["prerender"] is True
+        
+        # NOTE: converter.py calls mols2grid.display() with these kwargs.
+        # But generate_grid_html doesn't return the grid object or expose the mocking of mols2grid inside it easily 
+        # unless we mock mols2grid.display there too.
 
 def test_grid_to_image_logic(output_dir):
     """Test the logic inside grid_to_image (file handling etc) without real screenshot."""

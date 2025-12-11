@@ -1,12 +1,11 @@
 
-import math
 import pandas as pd
 import mols2grid
 import os
 from pathlib import Path
 from typing import Optional, Tuple, List
 
-# 画像化する上で最低限必要なCSS
+# Minimum CSS required for imaging
 DEFAULT_CSS = """
 body {
     background-color: #ffffff;
@@ -31,19 +30,40 @@ def generate_grid_html(
     **kwargs
 ) -> str:
     """
-    DataFrameからグリッドHTMLを生成し、直後に画像化を行います。
-    画像化のために必要なパラメータ（template="static", prerender=Trueなど）は内部で固定します。
+    Generates grid HTML from a DataFrame and immediately converts it to an image.
+    Parameters required for imaging (template="static", prerender=True, etc.) are fixed internally.
     """
     
-    # ユーザーからの指定があっても、画像化に必須な設定で上書きします
+    # Force settings required for imaging, overriding user input if necessary
     force_kwargs = {
-        "template": "static",  # インタラクティブ機能はOFFにする
-        "prerender": True,     # JSでの描画遅延を防ぐために事前にレンダリングする
-        "useSVG": True,        # 画質確保のためSVGを使用
+        "template": "static",  # Disable interactive features
+        "prerender": True,     # Prerender to prevent JS rendering delays
+        "useSVG": True,        # Use SVG for better quality
     }
     
-    # kwargsに強制設定をマージ（ユーザー設定より優先）
+    # Transparency Handling:
+    # If transparent is requested, override body background to transparent.
+    # We must POP 'transparent' from kwargs because mols2grid.display doesn't accept it.
+    is_transparent = kwargs.pop("transparent", False)
+    if is_transparent:
+        custom_css += "\nbody { background-color: transparent !important; }"
+        
+        # Configure MolDrawOptions to enable transparent background for molecules
+        from rdkit.Chem.Draw import MolDrawOptions
+        opts = kwargs.get("MolDrawOptions", None)
+        if opts is None:
+            opts = MolDrawOptions()
+        
+        # opts.clearBackground = False (Do not draw the white rect)
+        opts.clearBackground = False
+        kwargs["MolDrawOptions"] = opts
+
+    # Merge forced settings into kwargs (taking precedence over user settings)
     display_kwargs = {**kwargs, **force_kwargs}
+    
+    # Default border to None, but use user specification if provided
+    if "border" not in display_kwargs:
+        display_kwargs["border"] = "none"
 
     grid = mols2grid.display(
         df,
@@ -51,7 +71,6 @@ def generate_grid_html(
         pad=pad,
         subset=subset,
         n_cols=n_cols,
-        border="none",
         fontsize=fontsize,
         smiles_col=smiles_col,
         custom_css=custom_css,
@@ -61,20 +80,22 @@ def generate_grid_html(
     return grid_to_image(
         grid, 
         output_image_path=output_image_path, 
-        intermediate_html_path=output_html_path
+        intermediate_html_path=output_html_path,
+        omit_background=is_transparent
     )
 
 def grid_to_image(
     grid,
     output_image_path: str = "result.png",
     intermediate_html_path: Optional[str] = None,
-    selector: str = "#mols2grid"
+    selector: str = "#mols2grid",
+    omit_background: bool = False
 ) -> str:
     """
-    mols2gridオブジェクトを受け取り、Puppeteer経由で画像化します。
+    Receives a mols2grid object and converts it to an image via Playwright.
     """
     html_content = grid._repr_html_()
-    
+
     if intermediate_html_path:
         html_path = Path(intermediate_html_path).resolve()
         with open(html_path, "w", encoding="utf-8") as f:
@@ -86,14 +107,16 @@ def grid_to_image(
         temp_file.write(html_content)
         temp_file.close()
         html_path = Path(temp_file.name)
-        
+            
     try:
         from .screenshot import capture_element_screenshot
         return str(capture_element_screenshot(
             html_file_path=html_path,
             output_image_path=output_image_path,
-            selector=selector
+            selector=selector,
+            omit_background=omit_background
         ))
+            
     finally:
         if temp_file:
             try:

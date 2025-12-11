@@ -43,8 +43,8 @@ def capture_element_screenshot(
             
         # Helper to ensure background is white if transparent (common issue in screenshots)
         # We can inject style if needed, but for now just screenshot.
-        
-        locator.screenshot(path=str(output_file))
+        omit_background = kwargs.get("omit_background", False)
+        locator.screenshot(path=str(output_file), omit_background=omit_background)
         browser.close()
 
     return output_file

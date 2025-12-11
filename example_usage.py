@@ -6,7 +6,7 @@ from m2g_image import grid_to_image
 
 def main():
     # 1. 任意のデータフレームを用意
-    df = pd.read_csv("test.csv")
+    df = pd.read_csv("example/test.csv")
 
     # 2. mols2gridでグリッドオブジェクトを作成 (表示設定はここで行う)
     print("Creating grid object...")
@@ -23,7 +23,7 @@ def main():
 
     # 3. グリッドオブジェクトを直接画像化関数に渡す
     print("Converting grid object to image...")
-    output_path = grid_to_image(grid, "example_output.png")
+    output_path = grid_to_image(grid, "example/example_usage_output.png")
     
     print(f"Success! Image saved to: {output_path}")
 
