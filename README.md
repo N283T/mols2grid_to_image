@@ -23,12 +23,12 @@ Image rendering and capture are handled using **Playwright**, enabling the entir
 ## Installation
 
 This project is managed with `uv`.
-    
+
 1.  **Install via `uv`**:
     ```bash
     uv add https://github.com/N283T/mols2grid_to_image.git
     ```
-    
+
 2.  **Install via `pip`**:
     ```bash
     pip install https://github.com/N283T/mols2grid_to_image.git
@@ -51,33 +51,34 @@ uv run m2g-image input.csv -o output.png
 
 | Option | Shorthand | Description | Default |
 | :--- | :--- | :--- | :--- |
+| `--version` | `-v` | Show version and exit. | |
 | `--output` | `-o` | Path to output PNG file (base name). | `result.png` |
-| `--output-dir` | | Directory to save output images. Overrides `--output` dir. | `None` |
+| `--output-dir` | `-od` | Directory to save output images. Overrides `--output` dir. | `None` |
 | `--output-html` | `-oh` | Path to save intermediate HTML file (Optional). | `None` (Not saved) |
 | `--config` | `-c` | Path to JSON configuration file. | `None` |
-| `--smiles-col` | | Column name for SMILES. | `smiles` |
-| `--n-cols` | | Number of columns in grid. | `5` |
+| `--smiles-col` | `-sc` | Column name for SMILES. | `smiles` |
+| `--n-cols` | `-nc` | Number of columns in grid. | `5` |
 | `--subset` | | Columns to display in grid. | `None` |
-| `--cell-width` | | Cell width in pixels. | `150` |
-| `--cell-height` | | Cell height in pixels. | `150` |
-| `--fontsize` | `-f` | Font size in points. | `12` |
+| `--cell-width` | `-w` | Cell width in pixels. | `150` |
+| `--cell-height` | `-ch` | Cell height in pixels. | `150` |
+| `--fontsize` | `-fs` | Font size in points. | `12` |
 | `--per-page` | `-p` | Number of items per image (pagination). | `None` (All in one) |
 | `--transparent` | `-t` | Enable transparent background for grid and molecules. | `False` |
 | `--border` | | CSS border for cells (e.g., "1px solid black"). | `None` |
-| `--gap` | | Gap between cells in pixels. | `0` |
-| `--fontfamily` | | Font family for text. | `sans-serif` |
-| `--text-align` | | Text alignment (left, center, right). | `center` |
+| `--gap` | | Gap between cells in pixels. | `None` |
+| `--font-family` | `-ff` | Font family for text. | `None` |
+| `--text-align` | `-ta` | Text alignment (left, center, right). | `None` |
 | `--sort-by` | | Column to sort by. | `None` |
-| `--remove-hs` | | Remove hydrogens from depiction. | `True` |
-| `--use-coords` | | Use existing coordinates from input. | `False` |
-| `--coord-gen` | | Use CoordGen for 2D coordinate generation. | `True` |
+| `--remove-hs` | | Remove hydrogens from depiction. | `None` |
+| `--use-coords` | | Use existing coordinates from input. | `None` |
+| `--coord-gen` | | Use CoordGen for 2D coordinate generation. | `None` |
 
 **Examples:**
 
 1. **Pagination**: Split into images with 50 molecules each.
    ```bash
-   uv run m2g-image data.csv --n-items-per-page 50 -o batch.png
-   # Generates batch_1.png, batch_2.png, ...
+   uv run m2g-image data.csv --per-page 50 -o batch.png
+   # Generates batch_01.png, batch_02.png, ...
    ```
 
 2. **Transparent Background**:
@@ -87,7 +88,7 @@ uv run m2g-image input.csv -o output.png
 
 3. **Output Directory & Zero Padding**:
    ```bash
-   uv run m2g-image data.csv --n-items-per-page 10 --output-dir results/ -o grid.png
+   uv run m2g-image data.csv --per-page 10 --output-dir results/ -o grid.png
    # Generates results/grid_01.png, results/grid_02.png, ...
    ```
 
@@ -120,20 +121,31 @@ You can integrate the conversion logic into your own Python scripts.
 ```python
 import pandas as pd
 import mols2grid
-from m2g_image import grid_to_image, generate_grid_html
+from m2g_image import grid_to_image, generate_grid_image
 
 # 1. High-level wrapper (Recommended)
-generate_grid_html(
+generate_grid_image(
     pd.read_csv("data.csv"),
     output_image_path="output.png",
     n_cols=5,
     subset=["ID"],
-    transparent=True
+    transparent=True,
 )
 
-# 2. Low-level usage
+# 2. With pagination
+from m2g_image import generate_grid_images
+
+for page_num, path in generate_grid_images(
+    pd.read_csv("data.csv"),
+    output_image_path="output.png",
+    n_items_per_page=50,
+    n_cols=5,
+):
+    print(f"Page {page_num}: {path}")
+
+# 3. Low-level usage
 grid = mols2grid.display(df, ...)
-# Note: For transparency, you must handle CSS and MolDrawOptions manually if using raw grid_to_image
+# Note: For transparency, you must handle CSS and MolDrawOptions manually
 output_path = grid_to_image(grid, "output.png", omit_background=True)
 ```
 

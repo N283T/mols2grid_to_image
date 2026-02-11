@@ -1,8 +1,7 @@
-
-from tempfile import template
 import mols2grid
 import pandas as pd
 from m2g_image import grid_to_image
+
 
 def main():
     # 1. Prepare a DataFrame
@@ -18,14 +17,15 @@ def main():
         size=(150, 150),
         fontsize=10,
         template="static",
-        prerender=True
+        prerender=True,
     )
 
     # 3. Convert grid object to image
     print("Converting grid object to image...")
     output_path = grid_to_image(grid, "example/example_usage_output.png")
-    
+
     print(f"Success! Image saved to: {output_path}")
+
 
 if __name__ == "__main__":
     main()
