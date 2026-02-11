@@ -12,7 +12,9 @@ runner = CliRunner()
 
 def _mock_generate_grid_images(*args, **kwargs):
     """Helper that mimics generate_grid_images yielding (page, path) tuples."""
-    output_path = Path(kwargs.get("output_image_path", args[1] if len(args) > 1 else "result.png"))
+    output_path = Path(
+        kwargs.get("output_image_path", args[1] if len(args) > 1 else "result.png")
+    )
     n_items = kwargs.get("n_items_per_page")
     df = args[0] if args else kwargs["df"]
     total = len(df)
@@ -163,3 +165,11 @@ def test_app_missing_smiles_column(output_dir, tmp_path):
     assert result.exit_code == 1
     assert "smiles" in result.output.lower()
     assert "available columns" in result.output.lower()
+
+
+def test_app_version():
+    """Test that --version shows version string."""
+    result = runner.invoke(app, ["--version"])
+
+    assert result.exit_code == 0
+    assert "m2g-image" in result.output

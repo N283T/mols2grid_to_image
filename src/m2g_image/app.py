@@ -1,4 +1,5 @@
 import json
+from importlib.metadata import version
 
 import typer
 import pandas as pd
@@ -12,6 +13,12 @@ from .converter import generate_grid_images
 app = typer.Typer(
     help="Convert Molecule CSV to Grid Image via mols2grid and Playwright"
 )
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"m2g-image {version('mols2grid-to-image')}")
+        raise typer.Exit()
 
 
 def _load_config(config_path: Optional[Path]) -> dict[str, Any]:
@@ -120,6 +127,15 @@ def _run_batch_generation(
 @app.command()
 def main(
     input_csv: Optional[Path] = typer.Argument(None, help="Path to input CSV file"),
+    # Version
+    version: Optional[bool] = typer.Option(
+        None,
+        "-v",
+        "--version",
+        help="Show version and exit.",
+        callback=_version_callback,
+        is_eager=True,
+    ),
     # Output & Config
     output_image: Optional[Path] = typer.Option(
         None, "-o", "--output", help="Path to output PNG file (Default: result.png)"

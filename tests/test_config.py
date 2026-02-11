@@ -91,3 +91,35 @@ def test_path_coercion_from_config():
 
     assert cfg.output_image == Path("custom.png")
     assert cfg.output_dir == Path("/tmp/out")
+
+
+def test_unknown_config_keys_warning():
+    """Unknown keys in config file trigger a warning."""
+    import warnings
+
+    cli = {}
+    config = {"n_cols": 3, "unknown_key": "value", "another_bad": 42}
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        cfg = GridConfig.from_cli_and_config(cli, config)
+
+    warning_messages = [str(x.message) for x in w]
+    assert any("another_bad" in msg for msg in warning_messages)
+    assert any("unknown_key" in msg for msg in warning_messages)
+    assert cfg.n_cols == 3
+
+
+def test_input_csv_not_warned():
+    """input_csv is a known special key and should not trigger a warning."""
+    import warnings
+
+    cli = {}
+    config = {"input_csv": "test.csv", "n_cols": 3}
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        GridConfig.from_cli_and_config(cli, config)
+
+    warning_messages = [str(x.message) for x in w]
+    assert not any("input_csv" in msg for msg in warning_messages)

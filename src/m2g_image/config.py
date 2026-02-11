@@ -1,5 +1,6 @@
 """Grid configuration dataclass with CLI/config file merging."""
 
+import warnings
 from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any
@@ -89,6 +90,16 @@ class GridConfig:
         """
         merged: dict[str, Any] = {}
         field_names = {f.name for f in fields(cls)}
+
+        # Warn on unknown keys in config file (excluding special keys like input_csv)
+        _KNOWN_EXTRA_KEYS = {"input_csv"}
+        unknown_keys = set(file_config.keys()) - field_names - _KNOWN_EXTRA_KEYS
+        for key in sorted(unknown_keys):
+            warnings.warn(
+                f"Unknown config key ignored: '{key}'",
+                UserWarning,
+                stacklevel=2,
+            )
 
         for f in fields(cls):
             cli_val = cli_values.get(f.name)
