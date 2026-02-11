@@ -1,10 +1,14 @@
-import pandas as pd
-import mols2grid
-import os
-import io
 import contextlib
+import io
+import os
+import tempfile
 from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
+
+import mols2grid
+import pandas as pd
+
+from .screenshot import capture_element_screenshot
 
 # Minimum CSS required for imaging
 DEFAULT_CSS = """
@@ -38,33 +42,28 @@ def generate_grid_html(
 
     # Force settings required for imaging, overriding user input if necessary
     force_kwargs = {
-        "template": "static",  # Disable interactive features
-        "prerender": True,  # Prerender to prevent JS rendering delays
-        "useSVG": True,  # Use SVG for better quality
+        "template": "static",
+        "prerender": True,
+        "useSVG": True,
     }
 
     # Transparency Handling:
-    # If transparent is requested, override body background to transparent.
-    # We must POP 'transparent' from kwargs because mols2grid.display doesn't accept it.
+    # Pop 'transparent' from kwargs because mols2grid.display doesn't accept it.
     is_transparent = kwargs.pop("transparent", False)
     if is_transparent:
-        custom_css += "\nbody { background-color: transparent !important; }"
+        transparent_css = "\nbody { background-color: transparent !important; }"
+        custom_css = custom_css + transparent_css
 
-        # Configure MolDrawOptions to enable transparent background for molecules
         from rdkit.Chem.Draw import MolDrawOptions
 
         opts = kwargs.get("MolDrawOptions", None)
         if opts is None:
             opts = MolDrawOptions()
-
-        # opts.clearBackground = False (Do not draw the white rect)
         opts.clearBackground = False
         kwargs["MolDrawOptions"] = opts
 
-    # Merge forced settings into kwargs (taking precedence over user settings)
     display_kwargs = {**kwargs, **force_kwargs}
 
-    # Default border to None, but use user specification if provided
     if "border" not in display_kwargs:
         display_kwargs["border"] = "none"
 
@@ -107,8 +106,6 @@ def grid_to_image(
             f.write(html_content)
         temp_file = None
     else:
-        import tempfile
-
         temp_file = tempfile.NamedTemporaryFile(
             suffix=".html", delete=False, mode="w", encoding="utf-8"
         )
@@ -117,8 +114,6 @@ def grid_to_image(
         html_path = Path(temp_file.name)
 
     try:
-        from .screenshot import capture_element_screenshot
-
         return str(
             capture_element_screenshot(
                 html_file_path=html_path,
@@ -127,7 +122,6 @@ def grid_to_image(
                 omit_background=omit_background,
             )
         )
-
     finally:
         if temp_file:
             try:
