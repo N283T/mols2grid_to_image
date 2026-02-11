@@ -9,7 +9,7 @@ dependencies = [
     "playwright>=1.57.0",
     "pandas>=2.0.0",
     "typer>=0.9.0",
-    "tqdm>=4.67.1",
+    "rich>=14.2.0",
 ]
 
 [project.scripts]
@@ -30,5 +30,4 @@ testpaths = ["tests"]
 dev = [
     "pytest>=9.0.2",
     "pytest-mock>=3.15.1",
-    "types-tqdm>=4.67.0.20250809",
 ]

@@ -4,20 +4,25 @@ from importlib.metadata import version
 import typer
 import pandas as pd
 from pathlib import Path
-from tqdm import tqdm
+from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
 from typing import Any, List, Optional
 
 from .config import GridConfig
 from .converter import generate_grid_images
 
+console = Console()
+err_console = Console(stderr=True)
+
 app = typer.Typer(
-    help="Convert Molecule CSV to Grid Image via mols2grid and Playwright"
+    help="Convert Molecule CSV to Grid Image via mols2grid and Playwright",
+    rich_markup_mode="rich",
 )
 
 
 def _version_callback(value: bool | None) -> None:
     if value:
-        typer.echo(f"m2g-image {version('mols2grid-to-image')}")
+        console.print(f"m2g-image [bold]{version('mols2grid-to-image')}[/bold]")
         raise typer.Exit()
 
 
@@ -26,18 +31,20 @@ def _load_config(config_path: Optional[Path]) -> dict[str, Any]:
     if not config_path:
         return {}
     if not config_path.exists():
-        typer.echo(f"Error: Config file {config_path} does not exist.", err=True)
+        err_console.print(f"[red]Error:[/red] Config file {config_path} does not exist.")
         raise typer.Exit(code=1)
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
-        typer.echo(f"Error: Invalid JSON in config file {config_path}: {e}", err=True)
+        err_console.print(
+            f"[red]Error:[/red] Invalid JSON in config file {config_path}: {e}"
+        )
         raise typer.Exit(code=1) from e
     if not isinstance(data, dict):
-        typer.echo(
-            f"Error: Config file must contain a JSON object, got {type(data).__name__}",
-            err=True,
+        err_console.print(
+            f"[red]Error:[/red] Config file must contain a JSON object, "
+            f"got {type(data).__name__}"
         )
         raise typer.Exit(code=1)
     return data
@@ -47,36 +54,37 @@ def _resolve_input_csv(cli_input: Optional[Path], file_config: dict[str, Any]) -
     """Resolve and validate the input CSV path."""
     input_str = str(cli_input) if cli_input else file_config.get("input_csv")
     if not input_str:
-        typer.echo(
-            "Error: input_csv must be provided via argument or config file.", err=True
+        err_console.print(
+            "[red]Error:[/red] input_csv must be provided via argument or config file."
         )
         raise typer.Exit(code=1)
 
     input_path = Path(input_str)
     if not input_path.exists():
-        typer.echo(f"Error: Input file {input_path} does not exist.", err=True)
+        err_console.print(f"[red]Error:[/red] Input file {input_path} does not exist.")
         raise typer.Exit(code=1)
     return input_path
 
 
 def _load_and_validate_csv(input_path: Path, smiles_col: str) -> pd.DataFrame:
     """Load CSV and validate it has data and the required SMILES column."""
-    typer.echo(f"Loading {input_path}...")
+    console.print(f"Loading [cyan]{input_path}[/cyan]...")
     try:
         df = pd.read_csv(input_path)
     except Exception as e:
-        typer.echo(f"Error: Failed to read CSV file {input_path}: {e}", err=True)
+        err_console.print(
+            f"[red]Error:[/red] Failed to read CSV file {input_path}: {e}"
+        )
         raise typer.Exit(code=1) from e
 
     if len(df) == 0:
-        typer.echo("Warning: Input CSV has no data rows.", err=True)
+        err_console.print("[yellow]Warning:[/yellow] Input CSV has no data rows.")
         raise typer.Exit(code=0)
 
     if smiles_col not in df.columns:
-        typer.echo(
-            f"Error: SMILES column '{smiles_col}' not found in CSV. "
-            f"Available columns: {list(df.columns)}",
-            err=True,
+        err_console.print(
+            f"[red]Error:[/red] SMILES column '[bold]{smiles_col}[/bold]' not found in CSV. "
+            f"Available columns: {list(df.columns)}"
         )
         raise typer.Exit(code=1)
 
@@ -117,8 +125,6 @@ def _run_batch_generation(
     num_chunks = (total_rows + chunk_size - 1) // chunk_size
     grid_kwargs = cfg.to_grid_kwargs()
 
-    typer.echo("Generating Grid & Image (Powered by Playwright)...")
-
     pages = generate_grid_images(
         df,
         output_image_path=output_image,
@@ -131,8 +137,19 @@ def _run_batch_generation(
         fontsize=cfg.fontsize,
         **grid_kwargs,
     )
-    for _page_num, _path in tqdm(pages, desc="Processing Batches", total=num_chunks):
-        pass
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Generating images...", total=num_chunks)
+        for _page_num, path in pages:
+            progress.update(task, advance=1, description=f"Saved [cyan]{path.name}[/cyan]")
+
+    console.print(f"[green]Done![/green] {num_chunks} image(s) generated.")
 
 
 @app.command()
@@ -212,7 +229,9 @@ def main(
     ),
 ):
     """
-    Generate a grid image. Parameters can be supplied via CLI args or a JSON config file.
+    Generate a grid image from a CSV file containing molecular SMILES data.
+
+    Parameters can be supplied via CLI args or a JSON config file.
     CLI args take precedence over JSON config.
     """
     file_config = _load_config(config)
