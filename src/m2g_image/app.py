@@ -16,8 +16,19 @@ def load_config(config_path: Path) -> dict[str, Any]:
     """Load configuration from a JSON file."""
     if not config_path.exists():
         return {}
-    with open(config_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        typer.echo(f"Error: Invalid JSON in config file {config_path}: {e}", err=True)
+        raise typer.Exit(code=1) from e
+    if not isinstance(data, dict):
+        typer.echo(
+            f"Error: Config file must contain a JSON object, got {type(data).__name__}",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    return data
 
 
 def resolve_param(cli_val: Optional[T], config_val: Optional[T], default: T) -> T:
@@ -196,6 +207,14 @@ def main(
     if len(df) == 0:
         typer.echo("Warning: Input CSV has no data rows.", err=True)
         raise typer.Exit(code=0)
+
+    if final_smiles_col not in df.columns:
+        typer.echo(
+            f"Error: SMILES column '{final_smiles_col}' not found in CSV. "
+            f"Available columns: {list(df.columns)}",
+            err=True,
+        )
+        raise typer.Exit(code=1)
 
     # Subset default logic if still None
     if final_subset is None:

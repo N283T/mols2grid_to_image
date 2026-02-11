@@ -87,9 +87,7 @@ def test_app_output_control(test_data_dir, output_dir):
         assert str(expected_first) in filenames
 
         padding = len(str(expected_chunks))
-        expected_last = (
-            target_output_dir / f"myfile_{expected_chunks:0{padding}d}.png"
-        )
+        expected_last = target_output_dir / f"myfile_{expected_chunks:0{padding}d}.png"
         assert str(expected_last) in filenames
 
         assert target_output_dir.exists()
@@ -103,9 +101,10 @@ def test_app_empty_csv(output_dir, tmp_path):
     result = runner.invoke(app, [str(empty_csv), "-o", str(output_dir / "out.png")])
 
     assert result.exit_code == 0
-    assert "no data rows" in result.output.lower() or "no data rows" in (
-        result.stderr or ""
-    ).lower()
+    assert (
+        "no data rows" in result.output.lower()
+        or "no data rows" in (result.stderr or "").lower()
+    )
 
 
 def test_app_transparent_from_config(test_data_dir, output_dir, tmp_path):
@@ -118,10 +117,41 @@ def test_app_transparent_from_config(test_data_dir, output_dir, tmp_path):
         mock_gen.return_value = str(output_dir / "out.png")
 
         result = runner.invoke(
-            app, [str(input_csv), "-o", str(output_dir / "out.png"), "-c", str(config_file)]
+            app,
+            [
+                str(input_csv),
+                "-o",
+                str(output_dir / "out.png"),
+                "-c",
+                str(config_file),
+            ],
         )
 
         assert result.exit_code == 0
         mock_gen.assert_called_once()
         call_kwargs = mock_gen.call_args.kwargs
         assert call_kwargs.get("transparent") is True
+
+
+def test_app_malformed_config(test_data_dir, tmp_path):
+    """Test that invalid JSON config gives a clear error."""
+    config_file = tmp_path / "bad.json"
+    config_file.write_text("{invalid json}")
+    input_csv = test_data_dir / "test.csv"
+
+    result = runner.invoke(app, [str(input_csv), "-c", str(config_file)])
+
+    assert result.exit_code == 1
+    assert "invalid json" in result.output.lower()
+
+
+def test_app_missing_smiles_column(output_dir, tmp_path):
+    """Test that missing SMILES column gives a helpful error."""
+    csv_file = tmp_path / "no_smiles.csv"
+    csv_file.write_text("id,name\n1,aspirin\n2,caffeine\n")
+
+    result = runner.invoke(app, [str(csv_file), "-o", str(output_dir / "out.png")])
+
+    assert result.exit_code == 1
+    assert "smiles" in result.output.lower()
+    assert "available columns" in result.output.lower()
