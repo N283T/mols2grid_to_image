@@ -65,13 +65,13 @@ uv run m2g-image input.csv -o output.png
 | `--per-page` | `-p` | Number of items per image (pagination). | `None` (All in one) |
 | `--transparent` | `-t` | Enable transparent background for grid and molecules. | `False` |
 | `--border` | | CSS border for cells (e.g., "1px solid black"). | `None` |
-| `--gap` | | Gap between cells in pixels. | `0` |
-| `--font-family` | `-ff` | Font family for text. | `sans-serif` |
-| `--text-align` | `-ta` | Text alignment (left, center, right). | `center` |
+| `--gap` | | Gap between cells in pixels. | `None` |
+| `--font-family` | `-ff` | Font family for text. | `None` |
+| `--text-align` | `-ta` | Text alignment (left, center, right). | `None` |
 | `--sort-by` | | Column to sort by. | `None` |
-| `--remove-hs` | | Remove hydrogens from depiction. | `True` |
-| `--use-coords` | | Use existing coordinates from input. | `False` |
-| `--coord-gen` | | Use CoordGen for 2D coordinate generation. | `True` |
+| `--remove-hs` | | Remove hydrogens from depiction. | `None` |
+| `--use-coords` | | Use existing coordinates from input. | `None` |
+| `--coord-gen` | | Use CoordGen for 2D coordinate generation. | `None` |
 
 **Examples:**
 

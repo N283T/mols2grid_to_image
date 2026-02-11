@@ -1,10 +1,9 @@
 import json
 
 import pandas as pd
-import pytest
 from pathlib import Path
 from typer.testing import CliRunner
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from m2g_image.app import app
 
 runner = CliRunner()
@@ -38,9 +37,6 @@ def test_app_pagination(test_data_dir, output_dir):
     """Test that app splits output into multiple files when batch_size is set."""
     input_csv = test_data_dir / "test.csv"
     output_png = output_dir / "paginated.png"
-    row_count = len(pd.read_csv(input_csv))
-    batch_size = 2
-    expected_chunks = (row_count + batch_size - 1) // batch_size
 
     with patch("m2g_image.app.generate_grid_images") as mock_gen:
         mock_gen.side_effect = _mock_generate_grid_images

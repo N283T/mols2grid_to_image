@@ -91,9 +91,7 @@ class GridConfig:
         merged: dict[str, Any] = {}
         field_names = {f.name for f in fields(cls)}
 
-        # Warn on unknown keys in config file (excluding special keys like input_csv)
-        _KNOWN_EXTRA_KEYS = {"input_csv"}
-        unknown_keys = set(file_config.keys()) - field_names - _KNOWN_EXTRA_KEYS
+        unknown_keys = set(file_config.keys()) - field_names - _KNOWN_EXTRA_CONFIG_KEYS
         for key in sorted(unknown_keys):
             warnings.warn(
                 f"Unknown config key ignored: '{key}'",
@@ -113,6 +111,9 @@ class GridConfig:
 
         return cls(**merged)
 
+
+# Config keys that are valid but not GridConfig fields
+_KNOWN_EXTRA_CONFIG_KEYS: set[str] = {"input_csv"}
 
 # Fields that should be coerced to Path
 _PATH_FIELDS: set[str] = {"output_image", "output_html", "output_dir"}

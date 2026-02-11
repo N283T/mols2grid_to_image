@@ -15,7 +15,7 @@ app = typer.Typer(
 )
 
 
-def _version_callback(value: bool) -> None:
+def _version_callback(value: bool | None) -> None:
     if value:
         typer.echo(f"m2g-image {version('mols2grid-to-image')}")
         raise typer.Exit()
@@ -62,7 +62,11 @@ def _resolve_input_csv(cli_input: Optional[Path], file_config: dict[str, Any]) -
 def _load_and_validate_csv(input_path: Path, smiles_col: str) -> pd.DataFrame:
     """Load CSV and validate it has data and the required SMILES column."""
     typer.echo(f"Loading {input_path}...")
-    df = pd.read_csv(input_path)
+    try:
+        df = pd.read_csv(input_path)
+    except Exception as e:
+        typer.echo(f"Error: Failed to read CSV file {input_path}: {e}", err=True)
+        raise typer.Exit(code=1) from e
 
     if len(df) == 0:
         typer.echo("Warning: Input CSV has no data rows.", err=True)
@@ -104,6 +108,13 @@ def _run_batch_generation(
     subset: list[str],
 ) -> None:
     """Run grid image generation, optionally in batches."""
+    total_rows = len(df)
+    chunk_size = (
+        cfg.n_items_per_page
+        if (cfg.n_items_per_page and cfg.n_items_per_page > 0)
+        else total_rows
+    )
+    num_chunks = (total_rows + chunk_size - 1) // chunk_size
     grid_kwargs = cfg.to_grid_kwargs()
 
     typer.echo("Generating Grid & Image (Powered by Playwright)...")
@@ -120,7 +131,7 @@ def _run_batch_generation(
         fontsize=cfg.fontsize,
         **grid_kwargs,
     )
-    for _page_num, _path in tqdm(pages, desc="Processing Batches"):
+    for _page_num, _path in tqdm(pages, desc="Processing Batches", total=num_chunks):
         pass
 
 
@@ -168,22 +179,18 @@ def main(
     ),
     # Molecule display
     sort_by: Optional[str] = typer.Option(None, help="Column to sort by"),
-    remove_hs: Optional[bool] = typer.Option(
-        None, help="Remove hydrogens (Default: True)"
-    ),
-    use_coords: Optional[bool] = typer.Option(
-        None, help="Use existing coordinates (Default: False)"
-    ),
-    coord_gen: Optional[bool] = typer.Option(None, help="Use CoordGen (Default: True)"),
+    remove_hs: Optional[bool] = typer.Option(None, help="Remove hydrogens"),
+    use_coords: Optional[bool] = typer.Option(None, help="Use existing coordinates"),
+    coord_gen: Optional[bool] = typer.Option(None, help="Use CoordGen"),
     border: Optional[str] = typer.Option(
         None, help="CSS border styling (e.g., '1px solid black')"
     ),
-    gap: Optional[int] = typer.Option(None, help="Gap size in pixels (Default: 0)"),
+    gap: Optional[int] = typer.Option(None, help="Gap size in pixels"),
     fontfamily: Optional[str] = typer.Option(
-        None, "-ff", "--font-family", help="Font family (Default: sans-serif)"
+        None, "-ff", "--font-family", help="Font family"
     ),
     text_align: Optional[str] = typer.Option(
-        None, "-ta", "--text-align", help="Text alignment (Default: center)"
+        None, "-ta", "--text-align", help="Text alignment"
     ),
     # Pagination
     n_items_per_page: Optional[int] = typer.Option(
