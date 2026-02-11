@@ -52,6 +52,7 @@ Tests use `pytest` with `pytest-mock`. Most tests mock `generate_grid_image`/`ge
 - `mols2grid` - Molecular grid HTML generation (depends on `rdkit`)
 - `playwright` - Headless browser for HTML-to-PNG conversion
 - `typer` - CLI framework
+- `rich` - Styled console output, progress bars, formatted `--help`
 - `pandas` - Data handling
 
 ## Project-Specific Patterns
