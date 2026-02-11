@@ -7,7 +7,7 @@ from tqdm import tqdm
 from typing import Any, List, Optional
 
 from .config import GridConfig
-from .converter import generate_grid_html
+from .converter import generate_grid_images
 
 app = typer.Typer(
     help="Convert Molecule CSV to Grid Image via mols2grid and Playwright"
@@ -25,9 +25,7 @@ def _load_config(config_path: Optional[Path]) -> dict[str, Any]:
         with open(config_path, "r", encoding="utf-8") as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
-        typer.echo(
-            f"Error: Invalid JSON in config file {config_path}: {e}", err=True
-        )
+        typer.echo(f"Error: Invalid JSON in config file {config_path}: {e}", err=True)
         raise typer.Exit(code=1) from e
     if not isinstance(data, dict):
         typer.echo(
@@ -38,9 +36,7 @@ def _load_config(config_path: Optional[Path]) -> dict[str, Any]:
     return data
 
 
-def _resolve_input_csv(
-    cli_input: Optional[Path], file_config: dict[str, Any]
-) -> Path:
+def _resolve_input_csv(cli_input: Optional[Path], file_config: dict[str, Any]) -> Path:
     """Resolve and validate the input CSV path."""
     input_str = str(cli_input) if cli_input else file_config.get("input_csv")
     if not input_str:
@@ -101,42 +97,24 @@ def _run_batch_generation(
     subset: list[str],
 ) -> None:
     """Run grid image generation, optionally in batches."""
-    total_rows = len(df)
-    chunk_size = (
-        cfg.n_items_per_page
-        if (cfg.n_items_per_page and cfg.n_items_per_page > 0)
-        else total_rows
-    )
-    num_chunks = (total_rows + chunk_size - 1) // chunk_size
-    padding_width = len(str(num_chunks))
     grid_kwargs = cfg.to_grid_kwargs()
 
     typer.echo("Generating Grid & Image (Powered by Playwright)...")
 
-    for i in tqdm(range(num_chunks), desc="Processing Batches"):
-        start_idx = i * chunk_size
-        end_idx = min((i + 1) * chunk_size, total_rows)
-        chunk_df = df.iloc[start_idx:end_idx]
-
-        if num_chunks > 1:
-            current_path = (
-                output_image.parent
-                / f"{output_image.stem}_{i + 1:0{padding_width}d}{output_image.suffix}"
-            )
-        else:
-            current_path = output_image
-
-        generate_grid_html(
-            chunk_df,
-            output_image_path=str(current_path),
-            output_html_path=str(cfg.output_html) if cfg.output_html else None,
-            smiles_col=cfg.smiles_col,
-            subset=subset,
-            n_cols=cfg.n_cols,
-            cell_size=cfg.cell_size,
-            fontsize=cfg.fontsize,
-            **grid_kwargs,
-        )
+    pages = generate_grid_images(
+        df,
+        output_image_path=output_image,
+        n_items_per_page=cfg.n_items_per_page,
+        output_html_path=str(cfg.output_html) if cfg.output_html else None,
+        smiles_col=cfg.smiles_col,
+        subset=subset,
+        n_cols=cfg.n_cols,
+        cell_size=cfg.cell_size,
+        fontsize=cfg.fontsize,
+        **grid_kwargs,
+    )
+    for _page_num, _path in tqdm(pages, desc="Processing Batches"):
+        pass
 
 
 @app.command()

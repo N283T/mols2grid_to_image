@@ -10,30 +10,48 @@ from m2g_image.app import app
 runner = CliRunner()
 
 
+def _mock_generate_grid_images(*args, **kwargs):
+    """Helper that mimics generate_grid_images yielding (page, path) tuples."""
+    output_path = Path(kwargs.get("output_image_path", args[1] if len(args) > 1 else "result.png"))
+    n_items = kwargs.get("n_items_per_page")
+    df = args[0] if args else kwargs["df"]
+    total = len(df)
+
+    chunk_size = n_items if (n_items and n_items > 0) else total
+    num_chunks = (total + chunk_size - 1) // chunk_size
+    padding_width = len(str(num_chunks))
+
+    for i in range(num_chunks):
+        if num_chunks > 1:
+            path = (
+                output_path.parent
+                / f"{output_path.stem}_{i + 1:0{padding_width}d}{output_path.suffix}"
+            )
+        else:
+            path = output_path
+        yield (i + 1, path)
+
+
 def test_app_pagination(test_data_dir, output_dir):
     """Test that app splits output into multiple files when batch_size is set."""
-
     input_csv = test_data_dir / "test.csv"
     output_png = output_dir / "paginated.png"
     row_count = len(pd.read_csv(input_csv))
     batch_size = 2
     expected_chunks = (row_count + batch_size - 1) // batch_size
 
-    with patch("m2g_image.app.generate_grid_html") as mock_gen:
-        mock_gen.side_effect = lambda *args, **kwargs: kwargs["output_image_path"]
+    with patch("m2g_image.app.generate_grid_images") as mock_gen:
+        mock_gen.side_effect = _mock_generate_grid_images
 
         result = runner.invoke(
             app, [str(input_csv), "-o", str(output_png), "--per-page", "2"]
         )
 
         assert result.exit_code == 0
+        mock_gen.assert_called_once()
 
-    assert mock_gen.call_count == expected_chunks
-
-    filenames = [call.kwargs["output_image_path"] for call in mock_gen.call_args_list]
-
-    assert str(output_png.parent / "paginated_01.png") in filenames
-    assert str(output_png.parent / "paginated_02.png") in filenames
+        call_kwargs = mock_gen.call_args.kwargs
+        assert call_kwargs["n_items_per_page"] == 2
 
 
 def test_app_single_page(test_data_dir, output_dir):
@@ -41,27 +59,26 @@ def test_app_single_page(test_data_dir, output_dir):
     input_csv = test_data_dir / "test.csv"
     output_png = output_dir / "single.png"
 
-    with patch("m2g_image.app.generate_grid_html") as mock_gen:
-        mock_gen.return_value = str(output_png)
+    with patch("m2g_image.app.generate_grid_images") as mock_gen:
+        mock_gen.side_effect = _mock_generate_grid_images
 
         result = runner.invoke(app, [str(input_csv), "-o", str(output_png)])
 
         assert result.exit_code == 0
-        assert mock_gen.call_count == 1
-        assert mock_gen.call_args.kwargs["output_image_path"] == str(output_png)
+        mock_gen.assert_called_once()
+
+        call_kwargs = mock_gen.call_args.kwargs
+        assert call_kwargs["output_image_path"] == output_png
 
 
 def test_app_output_control(test_data_dir, output_dir):
-    """Test output_dir option and zero-padded filenames."""
+    """Test output_dir option creates directory."""
     input_csv = test_data_dir / "test.csv"
     target_output_dir = output_dir / "custom_out"
     output_filename = "myfile.png"
-    row_count = len(pd.read_csv(input_csv))
-    batch_size = 2
-    expected_chunks = (row_count + batch_size - 1) // batch_size
 
-    with patch("m2g_image.app.generate_grid_html") as mock_gen:
-        mock_gen.side_effect = lambda *args, **kwargs: kwargs["output_image_path"]
+    with patch("m2g_image.app.generate_grid_images") as mock_gen:
+        mock_gen.side_effect = _mock_generate_grid_images
 
         result = runner.invoke(
             app,
@@ -77,19 +94,10 @@ def test_app_output_control(test_data_dir, output_dir):
         )
 
         assert result.exit_code == 0
-        assert mock_gen.call_count == expected_chunks
+        mock_gen.assert_called_once()
 
-        filenames = [
-            call.kwargs["output_image_path"] for call in mock_gen.call_args_list
-        ]
-
-        expected_first = target_output_dir / "myfile_01.png"
-        assert str(expected_first) in filenames
-
-        padding = len(str(expected_chunks))
-        expected_last = target_output_dir / f"myfile_{expected_chunks:0{padding}d}.png"
-        assert str(expected_last) in filenames
-
+        call_kwargs = mock_gen.call_args.kwargs
+        assert call_kwargs["output_image_path"] == target_output_dir / "myfile.png"
         assert target_output_dir.exists()
 
 
@@ -113,8 +121,8 @@ def test_app_transparent_from_config(test_data_dir, output_dir, tmp_path):
     config_file = tmp_path / "config.json"
     config_file.write_text(json.dumps({"transparent": True}))
 
-    with patch("m2g_image.app.generate_grid_html") as mock_gen:
-        mock_gen.return_value = str(output_dir / "out.png")
+    with patch("m2g_image.app.generate_grid_images") as mock_gen:
+        mock_gen.side_effect = _mock_generate_grid_images
 
         result = runner.invoke(
             app,
