@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from m2g_image.screenshot import capture_element_screenshot
 
 

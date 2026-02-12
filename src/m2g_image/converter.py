@@ -112,9 +112,7 @@ def generate_grid_images(
         return
 
     chunk_size = (
-        n_items_per_page
-        if (n_items_per_page and n_items_per_page > 0)
-        else total_rows
+        n_items_per_page if (n_items_per_page and n_items_per_page > 0) else total_rows
     )
     num_chunks = (total_rows + chunk_size - 1) // chunk_size
     padding_width = len(str(num_chunks))

@@ -1,6 +1,5 @@
 import json
 
-import pandas as pd
 from pathlib import Path
 from typer.testing import CliRunner
 from unittest.mock import patch

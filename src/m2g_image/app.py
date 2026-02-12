@@ -31,7 +31,9 @@ def _load_config(config_path: Optional[Path]) -> dict[str, Any]:
     if not config_path:
         return {}
     if not config_path.exists():
-        err_console.print(f"[red]Error:[/red] Config file {config_path} does not exist.")
+        err_console.print(
+            f"[red]Error:[/red] Config file {config_path} does not exist."
+        )
         raise typer.Exit(code=1)
     try:
         with open(config_path, "r", encoding="utf-8") as f:
@@ -147,7 +149,9 @@ def _run_batch_generation(
     ) as progress:
         task = progress.add_task("Generating images...", total=num_chunks)
         for _page_num, path in pages:
-            progress.update(task, advance=1, description=f"Saved [cyan]{path.name}[/cyan]")
+            progress.update(
+                task, advance=1, description=f"Saved [cyan]{path.name}[/cyan]"
+            )
 
     console.print(f"[green]Done![/green] {num_chunks} image(s) generated.")
 

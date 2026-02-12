@@ -13,9 +13,7 @@ from m2g_image.converter import (
 
 @pytest.fixture
 def sample_df():
-    return pd.DataFrame(
-        {"smiles": ["C", "CC", "CCC"], "ccd": ["M1", "M2", "M3"]}
-    )
+    return pd.DataFrame({"smiles": ["C", "CC", "CCC"], "ccd": ["M1", "M2", "M3"]})
 
 
 def test_generate_grid_image_creates_files(sample_df, output_dir):
