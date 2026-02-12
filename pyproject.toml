@@ -3,14 +3,37 @@ name = "mols2grid-to-image"
 version = "0.1.0"
 description = "Convert molecules to grid images using mols2grid and Playwright"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "N283T" },
+]
+keywords = ["chemistry", "molecules", "mols2grid", "rdkit", "smiles", "grid", "image"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
 dependencies = [
     "mols2grid>=2.1.0",
     "playwright>=1.57.0",
     "pandas>=2.0.0",
     "typer>=0.9.0",
-    "rich>=14.2.0",
+    "rich>=14.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/N283T/mols2grid_to_image"
+Repository = "https://github.com/N283T/mols2grid_to_image"
+Issues = "https://github.com/N283T/mols2grid_to_image/issues"
 
 [project.scripts]
 m2g-image = "m2g_image.app:app"
@@ -30,4 +53,5 @@ testpaths = ["tests"]
 dev = [
     "pytest>=9.0.2",
     "pytest-mock>=3.15.1",
+    "pytest-cov>=6.0.0",
 ]
