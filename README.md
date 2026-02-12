@@ -28,14 +28,19 @@ Image rendering and capture are handled using **Playwright**, enabling the entir
 
 This project is managed with `uv`.
 
-1.  **Install via `uv`**:
+1.  **Install as a CLI tool via `uv tool install`**:
+    ```bash
+    uv tool install https://github.com/N283T/mols2grid_to_image.git
+    ```
+
+2.  **Install as a library via `uv add`**:
     ```bash
     uv add https://github.com/N283T/mols2grid_to_image.git
     ```
 
-2.  **Install via `pip`**:
+3.  **Install via `pip`**:
     ```bash
-    pip install https://github.com/N283T/mols2grid_to_image.git
+    pip install git+https://github.com/N283T/mols2grid_to_image.git
     ```
 
 ## Usage
