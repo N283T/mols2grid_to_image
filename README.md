@@ -7,6 +7,10 @@ The CLI allows you to **input a CSV file (containing SMILES or other molecular d
 Image rendering and capture are handled using **Playwright**, enabling the entire workflow to run within Python.
 
 
+## Example Output
+
+![Example Output](example/output.png)
+
 ## Features
 
 - **Pure Python**: Operates entirely in Python using `playwright` for headless browser automation.

@@ -22,7 +22,7 @@ def main():
 
     # 3. Convert grid object to image
     print("Converting grid object to image...")
-    output_path = grid_to_image(grid, "example/example_usage_output.png")
+    output_path = grid_to_image(grid, "example/output.png")
 
     print(f"Success! Image saved to: {output_path}")
 
