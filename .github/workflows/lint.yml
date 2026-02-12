@@ -27,3 +27,6 @@ jobs:
 
       - name: Check linting
         run: uv run ruff check .
+
+      - name: Type check
+        run: uv run ty check

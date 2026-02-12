@@ -79,7 +79,7 @@ def test_frozen():
     """Mutation raises FrozenInstanceError."""
     cfg = GridConfig()
     with pytest.raises(FrozenInstanceError):
-        cfg.n_cols = 10
+        cfg.n_cols = 10  # type: ignore[invalid-assignment]
 
 
 def test_path_coercion_from_config():
