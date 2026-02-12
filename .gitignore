@@ -16,5 +16,13 @@ wheels/
 # pytest
 .pytest_cache/
 
+# Ruff
+.ruff_cache/
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
 # Claude
 CLAUDE.md
